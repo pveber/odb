@@ -214,6 +214,17 @@ let get_tarball_chk p idir = (* checks package signature if possible *)
        exit 5)
     else printf "Tarball %s passed %s check\n" fn hash
   in
+  (* checks that the downloaded file is a known archive type *)
+  let test_file_type () = 
+    let known_types = ["application/x-gzip" ; "application/zip" ; "application/x-bzip2"] in
+    let cmd         = "file -b --mime-type " ^ fn in
+    let output, _   = get_command_output cmd in
+    if not (List.mem output known_types) then (
+      eprintf "The format of the downloaded archive is not handled\n";
+      exit 5
+    )
+  in
+  test_file_type () ;
   if PL.has_key ~p "gpg" then
     if not (detect_exe "gpg") then
       failwith ("gpg executable not found; cannot check signature for " ^ fn)
